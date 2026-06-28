@@ -35,4 +35,6 @@ server/reset-admin.js
 **/*.spec.ts
 wiki/
 scripts/
+!scripts/
+!scripts/railway-start.sh
 charts/

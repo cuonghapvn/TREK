@@ -69,6 +69,8 @@ RUN apt-get update && \
 
 # gosu rebuilt with a current Go toolchain (stage 0) — used by CMD to drop to node.
 COPY --from=gosu-build /out/gosu /usr/local/bin/gosu
+COPY scripts/railway-start.sh /usr/local/bin/trek-railway-start
+RUN chmod +x /usr/local/bin/trek-railway-start
 
 ENV XDG_CACHE_HOME=/tmp/kf6-cache
 # Prevent Qt from probing for a display in headless containers.
