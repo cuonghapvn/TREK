@@ -4,6 +4,11 @@ image:
   # tag: latest
   pullPolicy: IfNotPresent
 
+# Deployment update strategy. Recreate is the safe default for the single-writer SQLite
+# DB on a ReadWriteOnce volume (the old pod is torn down before the new one starts).
+# Set to RollingUpdate only if you back the data volume with ReadWriteMany storage.
+updateStrategy: Recreate
+
 # Optional image pull secrets for private registries
 imagePullSecrets: []
   # - name: my-registry-secret
@@ -92,6 +97,12 @@ secretEnv:
   ADMIN_PASSWORD: ""
   # OIDC client secret — set together with env.OIDC_ISSUER and env.OIDC_CLIENT_ID.
   OIDC_CLIENT_SECRET: ""
+  # Optional Unsplash Access Key for trip-cover and place-image search.
+  # Without one, TREK uses Unsplash's unauthenticated endpoint, which some
+  # datacenter/VPS IPs (including many Kubernetes clusters) are blocked from.
+  # Get a free key at https://unsplash.com/developers. Can also be set per-admin
+  # in Admin > Settings; this value overrides that. Leave empty to disable.
+  UNSPLASH_ACCESS_KEY: ""
 
 # If true, a random ENCRYPTION_KEY is generated at install and preserved across upgrades
 generateEncryptionKey: false
@@ -101,15 +112,20 @@ existingSecret: ""
 existingSecretKey: ENCRYPTION_KEY
 
 persistence:
+  # When disabled, volumes fall back to an ephemeral emptyDir (data lost on pod restart).
   enabled: true
   data:
     size: 1Gi
     # Leave empty to use the cluster's default StorageClass; set to bind a specific class.
     storageClassName: ""
+    # Bind an existing PVC. The other values (size, storageClassName, annotations) are then ignored.
+    existingClaim: ""
     annotations: {}
   uploads:
     size: 1Gi
     storageClassName: ""
+    # Specify an existing PVC to bind. The other values are then ignored.
+    existingClaim: ""
     annotations: {}
 
 resources:

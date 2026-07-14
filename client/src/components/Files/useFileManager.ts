@@ -7,7 +7,8 @@ import type { Place, Reservation, TripFile, Day, AssignmentsMap } from '../../ty
 import { useCanDo } from '../../store/permissionsStore'
 import { useTripStore } from '../../store/tripStore'
 import { getAuthUrl } from '../../api/authUrl'
-import { isImage } from './FileManager.helpers'
+import { isImage, isMedia, isWalletPass } from './FileManager.helpers'
+import { openFile as openFileInTab } from '../../utils/fileDownload'
 
 export interface FileManagerProps {
   files?: TripFile[]
@@ -184,12 +185,17 @@ export function useFileManager({ files = [], onUpload, onDelete, onUpdate, place
     }
   }
 
-  const imageFiles = filteredFiles.filter(f => isImage(f.mime_type))
+  // Image OR video — both open in the lightbox; videos play there (#823).
+  const mediaFiles = filteredFiles.filter(f => isMedia(f.mime_type))
 
   const openFile = (file) => {
-    if (isImage(file.mime_type)) {
-      const idx = imageFiles.findIndex(f => f.id === file.id)
+    if (isMedia(file.mime_type)) {
+      const idx = mediaFiles.findIndex(f => f.id === file.id)
       setLightboxIndex(idx >= 0 ? idx : 0)
+    } else if (isWalletPass(file.mime_type, file.original_name)) {
+      // Download so the OS hands the pass to Apple Wallet (#1447) rather than
+      // forcing it into the in-app PDF preview.
+      openFileInTab(file.url, file.original_name).catch(() => {})
     } else {
       setPreviewFile(file)
     }
@@ -202,7 +208,7 @@ export function useFileManager({ files = [], onUpload, onDelete, onUpdate, place
     toggleTrash, refreshFiles, handleStar, handleRestore, handlePermanentDelete, handleEmptyTrash,
     previewFile, setPreviewFile, previewFileUrl, assignFileId, setAssignFileId,
     getRootProps, getInputProps, isDragActive, handlePaste, filteredFiles, handleDelete,
-    handleAssign, imageFiles, openFile,
+    handleAssign, mediaFiles, openFile,
   }
 }
 

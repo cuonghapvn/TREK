@@ -5,11 +5,15 @@ import { useCanDo } from '../../store/permissionsStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { getCached, fetchPhoto } from '../../services/photoService'
 import { useToast } from '../../components/shared/Toast'
-import { Map, Ticket, PackageCheck, Wallet, FolderOpen, Users, Train } from 'lucide-react'
+import { Map, Ticket, PackageCheck, Wallet, FolderOpen, Users, Train, Blocks } from 'lucide-react'
 import { useTranslation, translateApiError } from '../../i18n'
-import { addonsApi, accommodationsApi, authApi, tripsApi, assignmentsApi, healthApi, airtrailApi } from '../../api/client'
+import { addonsApi, accommodationsApi, authApi, tripsApi, assignmentsApi, healthApi, airtrailApi, mapsApi, placesApi } from '../../api/client'
+import { parsedItemToDraft, isTransportItem, type BookingReviewDraft } from '../../components/Planner/parsedItemToDraft'
+import type { BookingImportPreviewItem } from '@trek/shared'
 import { accommodationRepo } from '../../repo/accommodationRepo'
-import { offlineDb } from '../../db/offlineDb'
+import { offlineDb, getImportFiles, deleteImportFiles } from '../../db/offlineDb'
+import { isEffectivelyOffline } from '../../sync/networkMode'
+import { useBackgroundTasksStore } from '../../store/backgroundTasksStore'
 import { useAuthStore } from '../../store/authStore'
 import { useResizablePanels } from '../../hooks/useResizablePanels'
 import { useTripWebSocket } from '../../hooks/useTripWebSocket'
@@ -17,6 +21,7 @@ import { useRouteCalculation } from '../../hooks/useRouteCalculation'
 import { usePlaceSelection } from '../../hooks/usePlaceSelection'
 import { usePlannerHistory } from '../../hooks/usePlannerHistory'
 import { useAirtrailConnection } from '../../hooks/useAirtrailConnection'
+import { usePluginStore } from '../../store/pluginStore'
 import type { Accommodation, TripMember, Day, Place, Reservation } from '../../types'
 import { resolvePoolAssignmentId } from './tripPlannerModel'
 
@@ -38,6 +43,9 @@ export function useTripPlanner() {
   const toast = useToast()
   const { t, language } = useTranslation()
   const { settings } = useSettingsStore()
+  // trip-page plugins mount as tabs inside this trip planner (tripId-scoped).
+  const allPlugins = usePluginStore(s => s.plugins)
+  const pluginsLoaded = usePluginStore(s => s.loaded)
   const placesPhotosEnabled = useAuthStore(s => s.placesPhotosEnabled)
   const trip = useTripStore(s => s.trip)
   const days = useTripStore(s => s.days)
@@ -69,6 +77,16 @@ export function useTripPlanner() {
   const [allowedFileTypes, setAllowedFileTypes] = useState<string | null>(null)
   const [tripMembers, setTripMembers] = useState<TripMember[]>([])
 
+  // Re-fetch the trip roster so consumers (Costs participants, Collab, …) pick up a
+  // just-added guest or member without a full page reload.
+  const refreshMembers = useCallback(() => {
+    if (!tripId || isEffectivelyOffline()) return
+    tripsApi.getMembers(tripId).then(d => {
+      const all = [d.owner, ...(d.members || [])].filter(Boolean)
+      setTripMembers(all)
+    }).catch(() => {})
+  }, [tripId])
+
   const loadAccommodations = useCallback(() => {
     if (tripId) {
       accommodationRepo.list(tripId).then(d => setTripAccommodations(d.accommodations || [])).catch(() => {})
@@ -88,8 +106,14 @@ export function useTripPlanner() {
     }).catch(() => {})
   }, [])
 
-  const TRANSPORT_TYPES = new Set(['flight', 'train', 'bus', 'car', 'taxi', 'bicycle', 'cruise', 'ferry', 'transport_other'])
+  const TRANSPORT_TYPES = new Set(['flight', 'train', 'bus', 'car', 'taxi', 'bicycle', 'cruise', 'ferry', 'transit', 'transport_other'])
 
+  const tripPagePlugins = allPlugins.filter(p => p.type === 'trip-page')
+  const tripPluginIds = tripPagePlugins.map(p => p.id).join(',')
+
+  // A trip-page plugin may replace core tabs while it's active (its manifest names
+  // them; 'plan' is never replaceable) and may pick where its own tab sits.
+  const replacedTabs = new Set(tripPagePlugins.flatMap(p => p.tripPage?.replaces ?? []))
   const TRIP_TABS = [
     { id: 'plan', label: t('trip.tabs.plan'), icon: Map },
     { id: 'transports', label: t('trip.tabs.transports'), icon: Train },
@@ -98,7 +122,12 @@ export function useTripPlanner() {
     ...(enabledAddons.budget ? [{ id: 'finanzplan', label: t('trip.tabs.budget'), icon: Wallet }] : []),
     ...(enabledAddons.documents ? [{ id: 'dateien', label: t('trip.tabs.files'), icon: FolderOpen }] : []),
     ...(enabledAddons.collab ? [{ id: 'collab', label: t('admin.addons.catalog.collab.name'), icon: Users }] : []),
-  ]
+  ].filter(tab => tab.id === 'plan' || !replacedTabs.has(tab.id))
+  // Positioned plugin tabs splice in ascending order so two positions stay stable;
+  // the rest append, exactly as before this capability existed.
+  const positioned = tripPagePlugins.filter(p => p.tripPage?.position != null).sort((a, b) => (a.tripPage!.position! - b.tripPage!.position!))
+  for (const p of positioned) TRIP_TABS.splice(Math.min(p.tripPage!.position!, TRIP_TABS.length), 0, { id: `plugin:${p.id}`, label: p.name, icon: Blocks })
+  for (const p of tripPagePlugins.filter(p => p.tripPage?.position == null)) TRIP_TABS.push({ id: `plugin:${p.id}`, label: p.name, icon: Blocks })
 
   const [activeTab, setActiveTab] = useState<string>(() => {
     const saved = sessionStorage.getItem(`trip-tab-${tripId}`)
@@ -106,14 +135,20 @@ export function useTripPlanner() {
   })
 
   useEffect(() => {
+    // Don't evict a saved plugin tab before the plugin feed has loaded.
+    if (activeTab.startsWith('plugin:') && !pluginsLoaded) return
     const validTabIds = TRIP_TABS.map(t => t.id)
     if (!validTabIds.includes(activeTab)) {
       setActiveTab('plan')
       sessionStorage.setItem(`trip-tab-${tripId}`, 'plan')
     }
-  }, [enabledAddons])
+  }, [enabledAddons, tripPluginIds, pluginsLoaded])
 
-  const handleTabChange = (tabId: string): void => {
+  const handleTabChange = (rawTabId: string): void => {
+    // A core tab a plugin replaced is gone from the bar, but a programmatic jump
+    // (e.g. onNavigateToFiles) could still target it and render a dead panel with
+    // no active pill — fall back to the plan view like the invalid-tab guard does.
+    const tabId = replacedTabs.has(rawTabId) ? 'plan' : rawTabId
     setActiveTab(tabId)
     sessionStorage.setItem(`trip-tab-${tripId}`, tabId)
     if (tabId === 'finanzplan') tripActions.loadBudgetItems?.(tripId)
@@ -158,6 +193,33 @@ export function useTripPlanner() {
   const [showTransportModal, setShowTransportModal] = useState<boolean>(false)
   const [editingTransport, setEditingTransport] = useState<Reservation | null>(null)
   const [transportModalDayId, setTransportModalDayId] = useState<number | null>(null)
+  // Public transit (#1065): open the TransportModal in its Automated mode, seed
+  // the search (change-route), and show the journey view for a saved entry.
+  const [transportModalAutomated, setTransportModalAutomated] = useState<boolean>(false)
+  const [transitPrefill, setTransitPrefill] = useState<{ from?: { name: string; lat: number; lng: number } | null; to?: { name: string; lat: number; lng: number } | null } | null>(null)
+  const [transitJourney, setTransitJourney] = useState<Reservation | null>(null)
+
+  // The bottom-nav "+" is context-aware per tab: on the Bookings / Transports tabs
+  // it opens the booking / transport modal via ?create=reservation|transport
+  // (place is handled above, expense in CostsPanel). #1349
+  useEffect(() => {
+    const intent = searchParams.get('create')
+    if (intent === 'reservation') {
+      setEditingReservation(null); setBookingForAssignmentId(null); setShowReservationModal(true)
+      setSearchParams(p => { p.delete('create'); return p }, { replace: true })
+    } else if (intent === 'transport') {
+      setEditingTransport(null); setTransportModalDayId(null); setShowTransportModal(true)
+      setSearchParams(p => { p.delete('create'); return p }, { replace: true })
+    }
+  }, [searchParams])
+  // Review-before-save import: each parsed item pre-fills the normal edit modal so
+  // the user checks/fixes it, then saves. A ref drives the queue (no stale closures).
+  const [reservationPrefill, setReservationPrefill] = useState<BookingReviewDraft | null>(null)
+  const [transportPrefill, setTransportPrefill] = useState<BookingReviewDraft | null>(null)
+  const [importReviewActive, setImportReviewActive] = useState(false)
+  const importQueueRef = useRef<BookingImportPreviewItem[]>([])
+  // The files this import was parsed from, so each reviewed booking can attach its source doc.
+  const importSourceFilesRef = useRef<File[]>([])
   // Manual route planning: off by default, toggled from the day-plan footer. Mode
   // (driving/walking) is per-session and selects which travel time the connectors show.
   const [routeShown, setRouteShown] = useState(false)
@@ -229,15 +291,12 @@ export function useTripPlanner() {
     if (tripId) {
       tripActions.loadTrip(tripId).catch(() => { toast.error(t('trip.toast.loadError')); navigate('/dashboard') })
       loadAccommodations()
-      if (!navigator.onLine) {
+      if (isEffectivelyOffline()) {
         offlineDb.tripMembers.where('tripId').equals(Number(tripId)).toArray()
           .then(rows => setTripMembers(rows))
           .catch(() => {})
       } else {
-        tripsApi.getMembers(tripId).then(d => {
-          const all = [d.owner, ...(d.members || [])].filter(Boolean)
-          setTripMembers(all)
-        }).catch(() => {})
+        refreshMembers()
       }
     }
   }, [tripId])
@@ -500,6 +559,32 @@ export function useTripPlanner() {
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t('common.unknownError')) }
   }, [deletePlaceIds, tripId, toast, selectedPlaceId, selectedDayId, updateRouteForDay, pushUndo])
 
+  const confirmChangeCategory = useCallback(async (ids: number[], categoryId: number | null) => {
+    if (!ids.length) return
+    const state = useTripStore.getState()
+    // Capture each place's prior category so undo can restore them per group.
+    const captured = state.places.filter(p => ids.includes(p.id)).map(p => ({ id: p.id, prev: p.category_id ?? null }))
+    try {
+      await tripActions.updatePlacesMany(tripId, ids, { category_id: categoryId })
+      toast.success(t('places.categoryChanged', { count: ids.length }))
+      if (captured.length > 0) {
+        pushUndo(t('undo.changeCategory'), async () => {
+          // Group the captured ids by their prior category so each set is restored
+          // in one call ('null' key = previously uncategorized). Map is shadowed by
+          // the lucide icon import in this file, so use a plain object.
+          const byPrev: Record<string, number[]> = {}
+          for (const { id, prev } of captured) {
+            const key = prev === null ? 'null' : String(prev)
+            ;(byPrev[key] ??= []).push(id)
+          }
+          for (const [key, group] of Object.entries(byPrev)) {
+            await tripActions.updatePlacesMany(tripId, group, { category_id: key === 'null' ? null : Number(key) })
+          }
+        })
+      }
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t('common.unknownError')) }
+  }, [tripId, toast, pushUndo])
+
   const handleAssignToDay = useCallback(async (placeId: number, dayId?: number, position?: number) => {
     const target = dayId || selectedDayId
     if (!target) { toast.error(t('trip.toast.selectDay')); return }
@@ -578,6 +663,25 @@ export function useTripPlanner() {
 
   const handleSaveReservation = async (data: Record<string, string | number | null> & { title: string }) => {
     try {
+      // Imported hotel with a reviewed address but no existing place picked: match
+      // an existing place by name, else geocode the address and create one, then link it.
+      const acc = (data as Record<string, any>).create_accommodation
+      if (data.type === 'hotel' && acc && acc.venue && !acc.place_id) {
+        acc.place_id = (await resolveImportedPlace(acc.venue)) ?? undefined
+        delete acc.venue
+      }
+      // A hotel's address lives on the linked place. Write an edited address
+      // through to it, otherwise the typed value was silently dropped and the
+      // old one reappeared on the next open (#1496).
+      if (data.type === 'hotel' && acc && typeof acc.address === 'string') {
+        const address = acc.address.trim()
+        const linkedPlace = acc.place_id ? places.find(p => p.id === Number(acc.place_id)) : undefined
+        if (address && linkedPlace && (linkedPlace.address || '') !== address) {
+          try { await tripActions.updatePlace(tripId, linkedPlace.id, { address }) }
+          catch { /* keep saving the booking; the address still lands in location */ }
+        }
+        delete acc.address
+      }
       if (editingReservation) {
         // Don't force a day here. The old code pinned it to the (often empty)
         // selected day, which dropped the booking out of the Plan; preserving the
@@ -596,6 +700,9 @@ export function useTripPlanner() {
         const r = await tripActions.addReservation(tripId, { ...data, day_id: selectedDayId || null })
         toast.success(t('trip.toast.reservationAdded'))
         setShowReservationModal(false)
+        // An imported booking auto-creates a linked cost server-side; the saving client gets
+        // no budget:created echo, so refresh the budget items here to surface it without a reload.
+        if ((data as Record<string, unknown>).create_budget_entry) await tripActions.loadBudgetItems?.(tripId)
         // Refresh accommodations if hotel was created
         if (data.type === 'hotel') {
           accommodationsApi.list(tripId).then(d => setTripAccommodations(d.accommodations || [])).catch(() => {})
@@ -620,6 +727,8 @@ export function useTripPlanner() {
         setShowTransportModal(false)
         setEditingTransport(null)
         setTransportModalDayId(null)
+        // Surface the auto-created linked cost without a reload (no budget:created echo to us).
+        if (data.create_budget_entry) await tripActions.loadBudgetItems?.(tripId)
         return r
       }
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t('common.unknownError')) }
@@ -633,6 +742,108 @@ export function useTripPlanner() {
       accommodationsApi.list(tripId).then(d => setTripAccommodations(d.accommodations || [])).catch(() => {})
     }
     catch (err: unknown) { toast.error(err instanceof Error ? err.message : t('common.unknownError')) }
+  }
+
+  // ── Review-before-save booking import ───────────────────────────────────────
+  // Match an existing trip place by name, else geocode the reviewed address and
+  // create one. Returns the place id (or null if even creation failed).
+  const resolveImportedPlace = async (venue: { name?: string; address?: string | null }): Promise<number | null> => {
+    const name = (venue.name || '').trim()
+    const n = name.toLowerCase()
+    if (n) {
+      const existing = places.find(p => p.name?.trim().toLowerCase() === n)
+        ?? places.find(p => p.name && (p.name.toLowerCase().includes(n) || n.includes(p.name.toLowerCase())))
+      if (existing) return existing.id
+    }
+    let lat: number | null = null
+    let lng: number | null = null
+    let address: string | null = venue.address ?? null
+    try {
+      const query = venue.address ? `${name} ${venue.address}`.trim() : name
+      if (query) {
+        const res = await mapsApi.search(query)
+        const hit = res?.places?.[0] as { lat?: number; lng?: number; address?: string } | undefined
+        if (hit && hit.lat != null && hit.lng != null) {
+          lat = hit.lat; lng = hit.lng
+          if (!address && hit.address) address = hit.address
+        }
+      }
+    } catch { /* geocode failure is non-fatal — create the place without coords */ }
+    try {
+      const place = await placesApi.create(tripId, { name: name || address || 'Accommodation', lat, lng, address } as never)
+      return (place as { id?: number })?.id ?? null
+    } catch { return null }
+  }
+
+  // Open the right edit modal for a parsed item, pre-filled, in create mode.
+  const openImportItem = (item: BookingImportPreviewItem) => {
+    const draft = parsedItemToDraft(item)
+    // Attach the file this item was parsed from so it lands in the booking's Files on save.
+    const srcName = item.source?.fileName
+    const srcFile = srcName ? importSourceFilesRef.current.find(f => f.name === srcName) : undefined
+    if (srcFile) draft._sourceFiles = [srcFile]
+    if (isTransportItem(item)) {
+      setShowReservationModal(false); setEditingReservation(null); setReservationPrefill(null)
+      setEditingTransport(null); setTransportModalDayId(null)
+      setTransportPrefill(draft); setShowTransportModal(true)
+    } else {
+      setShowTransportModal(false); setEditingTransport(null); setTransportPrefill(null); setTransportModalDayId(null)
+      setEditingReservation(null)
+      setReservationPrefill(draft); setShowReservationModal(true)
+    }
+  }
+
+  const startImportReview = (items: BookingImportPreviewItem[], sourceFiles: File[] = []) => {
+    if (!items.length) return
+    importSourceFilesRef.current = sourceFiles
+    importQueueRef.current = items.slice(1)
+    setImportReviewActive(true)
+    openImportItem(items[0])
+  }
+
+  // Bridge: when a finished background import is sent here for review (the user hit
+  // "review" in the background widget, on this or any page), open the per-item flow.
+  // Lives in the hook so the page stays a pure wiring container.
+  const bgTasks = useBackgroundTasksStore((s) => s.tasks)
+  const dismissBgTask = useBackgroundTasksStore((s) => s.dismiss)
+  useEffect(() => {
+    const task = bgTasks.find(
+      (tk) => tk.tripId === String(tripId) && tk.status === 'done' && tk.reviewRequested && !tk.consumed,
+    )
+    if (task && task.items && task.items.length > 0) {
+      // Hand the items (and the source files, to attach to each booking) to the review flow
+      // and clear the widget entry — once the user hit "review", the background card is done.
+      const items = task.items
+      const jobId = task.id
+      const inMemory = task.sourceFiles
+      dismissBgTask(jobId)
+      // Prefer the in-memory files (immediate path); after a reload they live in IndexedDB.
+      void (async () => {
+        const files = inMemory && inMemory.length ? inMemory : await getImportFiles(jobId)
+        deleteImportFiles(jobId)
+        startImportReview(items, files)
+      })()
+    }
+  }, [bgTasks, tripId, startImportReview, dismissBgTask])
+
+  // Called when a reviewed item's modal closes (saved or skipped): open the next,
+  // or finish the review session and refresh accommodations.
+  const advanceImportReview = () => {
+    const queue = importQueueRef.current
+    if (queue.length > 0) {
+      importQueueRef.current = queue.slice(1)
+      openImportItem(queue[0])
+      return
+    }
+    importQueueRef.current = []
+    setImportReviewActive(false)
+    setShowReservationModal(false); setEditingReservation(null); setReservationPrefill(null)
+    setShowTransportModal(false); setEditingTransport(null); setTransportPrefill(null); setTransportModalDayId(null)
+    accommodationsApi.list(tripId).then(d => setTripAccommodations(d.accommodations || [])).catch(() => {})
+    // Imported bookings auto-create their linked costs server-side, but the saving client
+    // suppresses its own budget:created echo (X-Socket-Id) — so reload the budget items here
+    // to surface those expenses without a manual page refresh.
+    tripActions.loadBudgetItems?.(tripId)
   }
 
   const selectedPlace = selectedPlaceId ? places.find(p => p.id === selectedPlaceId) : null
@@ -679,7 +890,7 @@ export function useTripPlanner() {
     selectedDayId, isLoading, tripActions, can, canUploadFiles,
     pushUndo, undo, canUndo, lastActionLabel, handleUndo,
     enabledAddons, collabFeatures, tripAccommodations, setTripAccommodations,
-    allowedFileTypes, tripMembers, setTripMembers, loadAccommodations,
+    allowedFileTypes, tripMembers, setTripMembers, refreshMembers, loadAccommodations,
     TRANSPORT_TYPES, TRIP_TABS, activeTab, setActiveTab, handleTabChange,
     leftWidth, rightWidth, leftCollapsed, rightCollapsed, setLeftCollapsed, setRightCollapsed, startResizeLeft, startResizeRight,
     selectedPlaceId, selectedAssignmentId, setSelectedPlaceId, selectAssignment,
@@ -693,6 +904,8 @@ export function useTripPlanner() {
     bookingForAssignmentId, setBookingForAssignmentId,
     showTransportModal, setShowTransportModal, editingTransport, setEditingTransport,
     transportModalDayId, setTransportModalDayId,
+    transportModalAutomated, setTransportModalAutomated, transitPrefill, setTransitPrefill, transitJourney, setTransitJourney,
+    reservationPrefill, transportPrefill, importReviewActive, startImportReview, advanceImportReview,
     routeShown, setRouteShown, routeProfile, setRouteProfile, fitKey, setFitKey,
     mobileSidebarOpen, setMobileSidebarOpen, mobilePlanScrollTopRef, mobilePlacesScrollTopRef,
     deletePlaceId, setDeletePlaceId, deletePlaceIds, setDeletePlaceIds,
@@ -701,7 +914,7 @@ export function useTripPlanner() {
     expandedDayIds, setExpandedDayIds, mapPlaces,
     route, routeSegments, routeInfo, setRoute, setRouteInfo, updateRouteForDay,
     handleSelectDay, handlePlaceClick, handleMarkerClick, handleMapClick, handleMapContextMenu, openAddPlaceFromPoi,
-    handleSavePlace, openPlaceEditor, handleDeletePlace, confirmDeletePlace, confirmDeletePlaces,
+    handleSavePlace, openPlaceEditor, handleDeletePlace, confirmDeletePlace, confirmDeletePlaces, confirmChangeCategory,
     handleAssignToDay, handleRemoveAssignment, handleReorder, handleReorderDays, handleAddDay, handleUpdateDayTitle,
     handleSaveReservation, handleSaveTransport, handleDeleteReservation,
     selectedPlace, dayOrderMap, dayPlaces,

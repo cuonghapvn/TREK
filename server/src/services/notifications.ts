@@ -92,8 +92,14 @@ export function getMcpSafeUrl(): string {
   return `http://localhost:${port}`;
 }
 
+/** Is SMTP configured at the instance level? (Independent of any one user's address.) */
+export function isSmtpConfigured(): boolean {
+  return !!(process.env.SMTP_HOST || getAppSetting('smtp_host'));
+}
+
 export function getUserEmail(userId: number): string | null {
-  return (db.prepare('SELECT email FROM users WHERE id = ?').get(userId) as { email: string } | undefined)?.email || null;
+  // Defense-in-depth (#1362): a guest's synthetic email must never be emailed.
+  return (db.prepare('SELECT email FROM users WHERE id = ? AND COALESCE(is_guest, 0) = 0').get(userId) as { email: string } | undefined)?.email || null;
 }
 
 export function getUserLanguage(userId: number): string {
@@ -211,7 +217,7 @@ export async function sendPasswordResetEmail(
     // No SMTP configured — log the link in a visually distinct block so
     // the admin can relay it. Never log the associated user id/email
     // content at a lower level, only what's needed.
-    // eslint-disable-next-line no-console
+     
     console.log(
       `\n===== PASSWORD RESET LINK =====\n` +
       `to: ${to}\n` +
