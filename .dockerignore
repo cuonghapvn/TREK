@@ -32,7 +32,6 @@ server/tests/
 server/vitest.config.ts
 **/*.test.ts
 **/*.spec.ts
-wiki/
 scripts/
 !scripts/
 !scripts/railway-start.sh
