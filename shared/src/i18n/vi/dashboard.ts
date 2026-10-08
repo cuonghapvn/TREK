@@ -10,6 +10,9 @@ const dashboard: TranslationStrings = {
   'dashboard.subtitle.archivedSuffix': '· {count} đã lưu trữ',
   'dashboard.newTrip': 'Chuyến đi mới',
   'dashboard.newTripSub': 'Lên kế hoạch cho một chuyến đi mới từ đầu',
+  'dashboard.subscribeAllTrips': 'Đăng ký tất cả chuyến đi',
+  'dashboard.subscribeAllTripsDesc':
+    'Một nguồn cấp lịch cho tất cả các chuyến đi đang hoạt động của bạn, được tự động giữ đồng bộ. Không bao gồm các chuyến đi đã lưu trữ và các chuyến đi đã kết thúc hơn 90 ngày trước.',
   'dashboard.gridView': 'Chế độ xem lưới',
   'dashboard.listView': 'Chế độ xem danh sách',
   'dashboard.currency': 'Tiền tệ',
@@ -92,6 +95,7 @@ const dashboard: TranslationStrings = {
   'dashboard.coverRemoveError': 'Không thể xóa',
   'dashboard.titleRequired': 'Tiêu đề là bắt buộc',
   'dashboard.endDateError': 'Ngày kết thúc phải sau ngày bắt đầu',
+  'dashboard.tripTooLong': 'Một chuyến đi có thể kéo dài tối đa {days} ngày',
   'dashboard.dateShiftTitle': 'Ngày bắt đầu mới',
   'dashboard.dateShiftIntro':
     'Bạn đã thay đổi thời điểm bắt đầu chuyến đi. Các kế hoạch của bạn nên theo ngày mới như thế nào?',
@@ -100,7 +104,25 @@ const dashboard: TranslationStrings = {
     'Kế hoạch theo ngày sẽ dời theo ngày mới, trong khi đặt chỗ và chỗ ở vẫn giữ nguyên ngày ban đầu miễn là những ngày đó vẫn nằm trong chuyến đi.',
   'dashboard.dateShiftAll': 'Dời tất cả',
   'dashboard.dateShiftAllDesc': 'Toàn bộ lịch trình sẽ dời theo ngày mới, bao gồm cả đặt chỗ và chỗ ở.',
-  'dashboard.dateShiftHint': 'Mẹo: để chỉ dời một phần lịch trình, hãy dùng "Thêm ngày" trong trình lập kế hoạch.',
+  'dashboard.dateShiftHint':
+    'Mẹo: để chỉ dời một phần lịch trình, hãy mở “Sắp xếp lại ngày” trong trình lập kế hoạch, thêm ngày sau khi chuyến đi kết thúc bằng nút hiển thị ngày đó, rồi chuyển ngày đó đến chỗ cần tạo khoảng trống.',
+  'dashboard.shrinkTitle': 'Bỏ bớt ngày?',
+  'dashboard.shrinkIntro': 'Khi lưu ngày mới, những ngày này sẽ bị bỏ:',
+  'dashboard.shrinkMoreDays': '+{count} ngày khác',
+  'dashboard.shrinkLastDays': 'Những ngày cuối bị bỏ, không phải những ngày đầu',
+  'dashboard.shrinkLastDaysHint':
+    'Kế hoạch từng ngày dời theo ngày mới, nên luôn là những ngày cuối của kế hoạch bị bỏ, kể cả khi ngày bắt đầu đã thay đổi.',
+  'dashboard.shrinkBookingsHint':
+    'Chúng vẫn nằm trong Đặt chỗ. Đặt chỗ nào có ngày vẫn thuộc chuyến đi sẽ quay lại ngày đó.',
+  'dashboard.shrinkBookingsShiftHint': 'Chúng vẫn nằm trong Đặt chỗ, không gắn với ngày nào.',
+  'dashboard.shrinkStayHint': 'Nhận phòng hoặc trả phòng rơi vào một ngày bị bỏ, nên toàn bộ chỗ lưu trú bị bỏ.',
+  'dashboard.shrinkStayBookedHint':
+    'Nhận phòng hoặc trả phòng rơi vào một ngày bị bỏ, nên toàn bộ chỗ lưu trú bị bỏ. Đặt chỗ “{booking}” và chi phí của nó vẫn nằm trong Đặt chỗ.',
+  'dashboard.shrinkStayBookingHint':
+    'Nhận phòng hoặc trả phòng rơi vào một ngày bị bỏ, nên toàn bộ chỗ lưu trú bị bỏ. Đặt chỗ “{booking}” vẫn nằm trong Đặt chỗ.',
+  'dashboard.shrinkConfirm': 'Bỏ ngày và lưu',
+  'dashboard.shrinkUnknown':
+    'Không thể kiểm tra các ngày của chuyến đi này. Nếu ngày mới có ít ngày hơn, việc lưu sẽ bỏ những ngày cuối và mọi thứ đã lên kế hoạch trong đó.',
   'dashboard.greeting.morning': 'Chào buổi sáng,',
   'dashboard.greeting.afternoon': 'Chào buổi chiều,',
   'dashboard.greeting.evening': 'Buổi tối vui vẻ,',
@@ -110,6 +132,7 @@ const dashboard: TranslationStrings = {
   'dashboard.mobile.places': 'Địa điểm',
   'dashboard.mobile.buddies': 'thành viên',
   'dashboard.mobile.newTrip': 'Chuyến đi mới',
+  'dashboard.mobile.addCoverImage': 'Thêm ảnh bìa',
   'dashboard.mobile.currency': 'Tiền tệ',
   'dashboard.mobile.timezone': 'Múi giờ',
   'dashboard.mobile.upcomingTrips': 'Chuyến đi sắp tới',
@@ -124,6 +147,9 @@ const dashboard: TranslationStrings = {
   'dashboard.mobile.tomorrow': 'Ngày mai',
   'dashboard.mobile.inDays': 'Trong {count} ngày',
   'dashboard.mobile.inMonths': 'Trong {count} tháng',
+  'dashboard.mobile.spotlightDayOf': 'Ngày {day} / {total}',
+  'dashboard.mobile.spotlightDayOne': '{count} ngày',
+  'dashboard.mobile.spotlightDaysMany': '{count} ngày',
   'dashboard.mobile.completed': 'Hoàn thành',
   'dashboard.mobile.currencyConverter': 'Chuyển đổi tiền tệ',
   'dashboard.filter.planned': 'Đã lên kế hoạch',
