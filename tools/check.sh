@@ -15,7 +15,8 @@ n_js=0
 n_sh=0
 t0=$(date +%s)
 
-for f in $(git ls-files '*.json' | grep -v -e '-lock\.json$' -e 'tsconfig[^/]*\.json$'); do
+# Bỏ fixtures: upstream cố ý để file hỏng làm dữ liệu test (vd. shared/scripts/fixtures/baseline-broken.json)
+for f in $(git ls-files '*.json' | grep -v -e '-lock\.json$' -e 'tsconfig[^/]*\.json$' -e '/fixtures/'); do
   n_json=$((n_json + 1))
   if ! python3 -I -c 'import json, sys; json.load(open(sys.argv[1], encoding="utf-8"))' "$f" 2>/dev/null; then
     fail=$((fail + 1)); echo "✗ JSON hỏng: $f"
@@ -35,7 +36,9 @@ fi
 
 for f in $(git ls-files '*.sh'); do
   n_sh=$((n_sh + 1))
-  if ! sh -n "$f" 2>/dev/null; then
+  # Script khai #!/bin/bash thì kiểm bằng bash (cú pháp bash không phải POSIX sh)
+  if head -1 "$f" | grep -q '^#!.*bash'; then shell=bash; else shell=sh; fi
+  if ! "$shell" -n "$f" 2>/dev/null; then
     fail=$((fail + 1)); echo "✗ cú pháp sh: $f"
   fi
 done
