@@ -1,0 +1,20 @@
+# Chỉ dùng cho `railway up` (upload từ máy, trần ~200 MB nén). Build từ GitHub không đọc file này.
+# Dockerfile cần: package*.json, shared/, client/ (trừ test), server/ (trừ test), wiki/, scripts/railway-start.sh.
+.git
+.github
+node_modules
+**/node_modules
+docs
+charts
+plugin-sdk
+client/tests
+client/e2e
+client/ios
+client/android
+server/tests
+shared/scripts
+**/coverage
+logs
+*.md
+!client/**/*.md
+!wiki/**
