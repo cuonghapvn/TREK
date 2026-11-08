@@ -17,6 +17,7 @@
   "wiki/Environment-Variables.md :: templates/secret.yaml",
   "wiki/Plugin-Development.md :: client/settings.html",
   "wiki/Plugin-Development.md :: server/index.js",
+  "wiki/Plugin-Development.md :: tools/list",
   "wiki/Plugin-Permissions.md :: docs/screenshot.png",
   "wiki/Plugin-Permissions.md :: server/index.js",
   "wiki/Plugin-Publishing.md :: docs/screenshot.png",
