@@ -253,7 +253,7 @@
 		96CE3377B458EDD77B809F61 /* TREKWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TREKWatchApp.swift; sourceTree = "<group>"; };
 		9A3FAA9DBC67D12389EEF0CF /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9D673E1909A5B750376ECB41 /* en */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		9DC696E1A1FD3A1A1695F9EA /* SharePage.js */ = {isa = PBXFileReference; includeInIndex = 1; path = SharePage.js; sourceTree = "<group>"; };
+		9DC696E1A1FD3A1A1695F9EA /* SharePage.js */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.javascript; path = SharePage.js; sourceTree = "<group>"; };
 		9F756414EFBB3542F65C14CE /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A030A06726542A2D7F61C54B /* TrekFamily.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrekFamily.swift; sourceTree = "<group>"; };
 		A03A384FE54FAD1ED68E12DC /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -445,7 +445,6 @@
 				3DF4F4305878F949DD09193F /* NotificationService.entitlements */,
 				FFA8802204810ED580DE46F3 /* NotificationService.swift */,
 			);
-			name = NotificationService;
 			path = NotificationService;
 			sourceTree = "<group>";
 		};
@@ -458,7 +457,6 @@
 				B8850ACF43C79E9D879ACC44 /* WatchStore.swift */,
 				B991C938B24A275550C15977 /* WatchStyle.swift */,
 			);
-			name = TREKWatchKit;
 			path = TREKWatchKit;
 			sourceTree = "<group>";
 		};
@@ -476,7 +474,6 @@
 				42EBD981456D3493C3947441 /* WatchModel.swift */,
 				3A6054202DCC03D83C2C9602 /* Localizable.strings */,
 			);
-			name = TREKWatch;
 			path = TREKWatch;
 			sourceTree = "<group>";
 		};
@@ -499,7 +496,6 @@
 				ED561D7B7219D23A99FAEB11 /* ShareViewController.swift */,
 				D0A4B2C6C93971E884561CFA /* Localizable.strings */,
 			);
-			name = ShareExtension;
 			path = ShareExtension;
 			sourceTree = "<group>";
 		};
@@ -510,7 +506,6 @@
 				37FA9D6C0C247EC699CF326C /* TREKWatchWidgets.entitlements */,
 				F4D88ABD8284E0A39E7586BE /* TREKWatchWidgets.swift */,
 			);
-			name = TREKWatchWidgets;
 			path = TREKWatchWidgets;
 			sourceTree = "<group>";
 		};
@@ -537,7 +532,6 @@
 				E6D2F4930E5F152C8090C4F8 /* BookingsContent.swift */,
 				AEF7DCAA1AEE67F1291668D1 /* TodosContent.swift */,
 			);
-			name = TREKWidgets;
 			path = TREKWidgets;
 			sourceTree = "<group>";
 		};
@@ -1056,7 +1050,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -1083,7 +1077,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.share;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1108,7 +1102,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1234,6 +1228,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SGL8GAQBU2;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1242,7 +1237,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
@@ -1257,6 +1252,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SGL8GAQBU2;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1264,7 +1260,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;
@@ -1288,7 +1284,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.share;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1314,7 +1310,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -1340,7 +1336,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.notifications;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.notifications;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1365,7 +1361,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.notifications;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.notifications;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1389,7 +1385,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.watchkitapp.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.watchkitapp.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -1415,7 +1411,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1439,7 +1435,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.liketrek.trek.watchkitapp.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuongn.trek.watchkitapp.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;

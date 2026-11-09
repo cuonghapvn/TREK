@@ -32,7 +32,7 @@ final class ShareViewController: UIViewController {
         view.backgroundColor = .clear
 
         model.onCancel = { [weak self] in
-            self?.extensionContext?.cancelRequest(withError: NSError(domain: "com.liketrek.trek.share", code: 0))
+            self?.extensionContext?.cancelRequest(withError: NSError(domain: "com.cuongn.trek.share", code: 0))
         }
         model.onDone = { [weak self] in
             self?.openApp()
@@ -55,7 +55,7 @@ final class ShareViewController: UIViewController {
     /// up the responder chain, and opening our own scheme brings TREK forward.
     /// Should that ever fail, the app picks the item up the next time it opens.
     private func openApp() {
-        guard let url = URL(string: "com.liketrek.trek://share") else { return }
+        guard let url = URL(string: "com.cuongn.trek://share") else { return }
         var responder: UIResponder? = self
         while let current = responder {
             if let application = current as? UIApplication {

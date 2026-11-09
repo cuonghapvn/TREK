@@ -693,7 +693,7 @@ final class TrekPush {
     static let shared = TrekPush()
     static let relay = "https://push.liketrek.com/v1/apns"
     /// The keychain group the notification extension reads the keys from.
-    static let keychainGroup = "com.liketrek.trek.shared"
+    static let keychainGroup = "com.cuongn.trek.shared"
 
     enum PushError: Error, Equatable { case denied, failed }
 
@@ -782,7 +782,7 @@ enum TrekPushKeys {
 /// widgets) through one keychain group, so no App Group is needed: the push keys
 /// and the widget snapshot.
 enum TrekSharedKeychain {
-    static let service = "com.liketrek.trek.push"
+    static let service = "com.cuongn.trek.push"
 
     private static func query(_ account: String) -> [String: Any] {
         [
@@ -810,7 +810,7 @@ enum TrekSharedKeychain {
             SecItemAdd(add as CFDictionary, nil)
             status = SecItemCopyMatching(probe as CFDictionary, &result)
         }
-        // The default group is the first one in the entitlement: "TEAMID.com.liketrek.trek.shared".
+        // The default group is the first one in the entitlement: "TEAMID.com.cuongn.trek.shared".
         if status == errSecSuccess, let attributes = result as? [String: Any],
            let group = attributes[kSecAttrAccessGroup as String] as? String,
            let prefix = group.split(separator: ".").first {

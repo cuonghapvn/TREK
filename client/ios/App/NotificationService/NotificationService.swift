@@ -53,7 +53,7 @@ struct PushKeys {
         // shared one (its entitlements list only that), where the app stored them.
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "com.liketrek.trek.push",
+            kSecAttrService as String: "com.cuongn.trek.push",
             kSecAttrAccount as String: account,
             kSecReturnData as String: true,
         ]

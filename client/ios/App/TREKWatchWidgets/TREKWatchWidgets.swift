@@ -99,7 +99,7 @@ private struct EntryView<Content: View>: View {
 
 struct NextStopWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "com.liketrek.trek.watch.nextStop", provider: WatchProvider(kind: .nextStop)) { entry in
+        StaticConfiguration(kind: "com.cuongn.trek.watch.nextStop", provider: WatchProvider(kind: .nextStop)) { entry in
             EntryView(entry: entry) { state, family, now in NextStopComplication(state: state, family: family, now: now) }
         }
         .configurationDisplayName(L("complication.nextStop.name"))
@@ -110,7 +110,7 @@ struct NextStopWidget: Widget {
 
 struct CountdownWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "com.liketrek.trek.watch.countdown", provider: WatchProvider(kind: .countdown)) { entry in
+        StaticConfiguration(kind: "com.cuongn.trek.watch.countdown", provider: WatchProvider(kind: .countdown)) { entry in
             EntryView(entry: entry) { state, family, now in CountdownComplication(state: state, family: family, now: now) }
         }
         .configurationDisplayName(L("complication.countdown.name"))
@@ -121,7 +121,7 @@ struct CountdownWidget: Widget {
 
 struct TripDayWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "com.liketrek.trek.watch.tripDay", provider: WatchProvider(kind: .tripDay)) { entry in
+        StaticConfiguration(kind: "com.cuongn.trek.watch.tripDay", provider: WatchProvider(kind: .tripDay)) { entry in
             EntryView(entry: entry) { state, family, _ in TripDayComplication(state: state, family: family) }
         }
         .configurationDisplayName(L("complication.tripDay.name"))

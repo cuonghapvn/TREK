@@ -234,7 +234,7 @@ struct WidgetSnapshot: Codable {
     private static func read(_ account: String) -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "com.liketrek.trek.push",
+            kSecAttrService as String: "com.cuongn.trek.push",
             kSecAttrAccount as String: account,
             kSecReturnData as String: true,
         ]
@@ -270,8 +270,8 @@ struct WidgetSnapshot: Codable {
         return formatter.date(from: String(iso.prefix(10)))
     }
 
-    /// The app link a tap opens: com.liketrek.trek://navigate<path>.
+    /// The app link a tap opens: com.cuongn.trek://navigate<path>.
     static func link(_ path: String) -> URL? {
-        URL(string: "com.liketrek.trek://navigate\(path.hasPrefix("/") ? path : "/" + path)")
+        URL(string: "com.cuongn.trek://navigate\(path.hasPrefix("/") ? path : "/" + path)")
     }
 }

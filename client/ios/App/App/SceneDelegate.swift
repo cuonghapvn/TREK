@@ -35,8 +35,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // else (the sign-in callback) stays with Capacitor.
         let files = URLContexts.filter { $0.url.isFileURL }
         for context in files { TrekSharedFiles.receive(context.url) }
-        // com.liketrek.trek://share: the share sheet left an item for the import.
-        let handoffs = URLContexts.filter { $0.url.scheme == "com.liketrek.trek" && $0.url.host == "share" }
+        // com.cuongn.trek://share: the share sheet left an item for the import.
+        let handoffs = URLContexts.filter { $0.url.scheme == "com.cuongn.trek" && $0.url.host == "share" }
         if !handoffs.isEmpty { TrekSharedFiles.receiveFromShareExtension() }
         let others = URLContexts.subtracting(files).subtracting(handoffs)
         if !others.isEmpty { SceneDelegateProxy.shared.scene(scene, openURLContexts: others) }

@@ -23,7 +23,7 @@
 	<key>WKApplication</key>
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>
-	<string>com.liketrek.trek</string>
+	<string>com.cuongn.trek</string>
 	<key>WKRunsIndependentlyOfCompanionApp</key>
 	<false/>
 </dict>

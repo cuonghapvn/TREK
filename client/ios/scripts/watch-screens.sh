@@ -11,7 +11,7 @@ set -euo pipefail
 
 APP="$1"
 OUT="$2"
-BUNDLE=com.liketrek.trek.watchkitapp
+BUNDLE=com.cuongn.trek.watchkitapp
 mkdir -p "$OUT"
 
 # The newest watchOS runtime, its newest Ultra, the largest other watch and the

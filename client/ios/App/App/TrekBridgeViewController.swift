@@ -105,7 +105,7 @@ enum TrekKeyCommands {
         }
     }
 
-    static let menuIdentifier = UIMenu.Identifier("com.liketrek.trek.shortcuts")
+    static let menuIdentifier = UIMenu.Identifier("com.cuongn.trek.shortcuts")
     private(set) static var current: [Command] = []
     static var onPress: ((String) -> Void)?
 
@@ -171,7 +171,7 @@ final class TrekTileStore {
     static let pruneTarget = 0.8
 
     let directory: URL
-    let queue = DispatchQueue(label: "com.liketrek.trek.tiles", qos: .utility)
+    let queue = DispatchQueue(label: "com.cuongn.trek.tiles", qos: .utility)
     private var writesSincePrune = 0
 
     private init() {

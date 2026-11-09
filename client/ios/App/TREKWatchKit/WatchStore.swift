@@ -29,7 +29,7 @@ struct PendingAction: Codable, Equatable, Identifiable {
 /// the same way the phone shares the widget snapshot). Nothing goes to
 /// UserDefaults, which the complications could not read anyway.
 enum WatchStore {
-    private static let service = "com.liketrek.trek.watch"
+    private static let service = "com.cuongn.trek.watch"
     private static let snapshotAccount = "watch.snapshot"
     private static let pendingAccount = "watch.pending"
 

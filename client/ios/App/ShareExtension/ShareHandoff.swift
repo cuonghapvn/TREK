@@ -7,7 +7,7 @@ import Security
 /// widgets already, and the app reads the item back the moment it opens
 /// (TrekSharedFiles.receiveFromShareExtension).
 enum ShareHandoff {
-    private static let service = "com.liketrek.trek.push"
+    private static let service = "com.cuongn.trek.push"
     static let metaAccount = "share.pending.meta"
     static let dataAccount = "share.pending.data"
 

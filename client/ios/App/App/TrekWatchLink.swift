@@ -17,7 +17,7 @@ final class TrekWatchLink: NSObject, WCSessionDelegate {
     /// Told when a tick arrived, on the main queue.
     var onAction: (() -> Void)?
 
-    private let queue = DispatchQueue(label: "com.liketrek.trek.watch")
+    private let queue = DispatchQueue(label: "com.cuongn.trek.watch")
     private let snapshotKey = "trek.watch.snapshot"
     private let complicationKey = "trek.watch.complicationDigest"
     private let actionsKey = "trek.watch.actions"

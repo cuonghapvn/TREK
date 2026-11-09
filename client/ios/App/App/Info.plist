@@ -80,7 +80,7 @@
 	<!-- Deep links (@capacitor/app appUrlOpen), matching the intent-filter in
 	     AndroidManifest.xml and @string/custom_url_scheme there. This is the
 	     return path for SSO and passkey sign-in, which runs in an
-	     ASWebAuthenticationSession and redirects back to com.liketrek.trek://…
+	     ASWebAuthenticationSession and redirects back to com.cuongn.trek://…
 
 	     Not a Universal Link: those are verified against one specific domain via
 	     apple-app-site-association, and a self-hosted app has no single domain to
@@ -111,12 +111,12 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.liketrek.trek</string>
+			<string>com.cuongn.trek</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.liketrek.trek</string>
+				<string>com.cuongn.trek</string>
 			</array>
 		</dict>
 	</array>
