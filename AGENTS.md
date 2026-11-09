@@ -9,7 +9,7 @@ Fork của **[liketrek/TREK](https://github.com/liketrek/TREK)** (trước là `
 - Công ty: tech — Lumen Technologies (Cuong Holdings). Manifest: `company.json` (`id: trek`; GitHub của mình đặt tên `TREK`, registry gợi ý đổi `fork-trek` khi tiện — chưa quyết).
 - Production: `https://trip.cuongn.com` — Railway project `trek`, service `trek-app`, build từ `Dockerfile` gốc theo `railway.json` (healthcheck `/api/health`, volume `/app/storage` → `/app/data` + `/app/uploads`, start `scripts/railway-start.sh`). Hướng dẫn: `docs/RAILWAY.md`. Giả định Railway nối GitHub và auto-deploy nhánh `main` (chưa xác nhận trong Railway) → **mọi push `main` coi là deploy production**.
 - Stack (upstream): npm-workspaces monorepo — `shared/` Zod schema + i18n, `server/` NestJS + SQLite (`better-sqlite3`) + WebSocket + MCP, `client/` React 19 + Vite + Zustand + Tailwind PWA, `plugin-sdk/` publish npm riêng. Node 24 trong Dockerfile; máy này có node 20, chưa `npm ci`.
-- Bản upstream đang chạy: 4.3.3 (`package.json`), sync gần nhất 8/10/2026.
+- Bản upstream đang chạy: 5.1.1 (`package.json`), gộp 9/11/2026.
 
 ## Cấu trúc
 
@@ -21,7 +21,6 @@ Dockerfile                  build production (upstream + 2 dòng của mình: co
 railway.json                Railway: builder DOCKERFILE, startCommand, healthcheck /api/health   (của mình)
 scripts/railway-start.sh    map volume /app/storage → data/uploads rồi chạy entrypoint           (của mình)
 docs/RAILWAY.md             hướng dẫn deploy Railway, biến môi trường bắt buộc                   (của mình)
-docs/ROADMAP.md             lộ trình và trạng thái fork                                          (quy chuẩn)
 tools/health.py             health --json: git, production, môi trường build                     (quy chuẩn)
 tools/check.sh              test offline: JSON, cú pháp JS/sh                                    (quy chuẩn)
 company.json                manifest cho HQ                                                      (quy chuẩn)
@@ -44,7 +43,7 @@ Chạy từ gốc repo. Khớp `commands` trong `company.json`.
 ## An toàn
 
 **Được tự làm**
-- Sửa file của fork: `company.json`, `AGENTS.md`, `docs/ROADMAP.md`, `tools/`, `docs/RAILWAY.md`, `railway.json`, `scripts/railway-start.sh`.
+- Sửa file của fork: `company.json`, `AGENTS.md`, `tools/`, `docs/RAILWAY.md`, `railway.json`, `scripts/railway-start.sh`.
 - Chạy lệnh đọc: `sh tools/check.sh`, `python3 tools/health.py`, `git log/status/diff/fetch`.
 - Đọc code upstream để trả lời câu hỏi, khoanh vùng lỗi.
 
@@ -75,16 +74,18 @@ Agent dùng chung của Holdings (cài qua `holdings ./hq install`); repo này k
 | Thẩm định diff trước khi commit | `reviewer` | trả lời thêm: diff có đụng mã upstream không |
 | Chi phí token | `tai-chinh` | `hq cost --by repo` (dòng trek) |
 
-## 6. Fork và cập nhật upstream
+## 6. Cập nhật upstream
 
-- Upstream: `https://github.com/liketrek/TREK` (nhánh `main`; upstream nhận PR vào `dev`). Remote hiện có trên máy: chỉ `origin` = `https://github.com/cuonghapvn/trek.git` (GitHub hiển thị `TREK`), chưa có remote `upstream` (`git remote -v`).
-- Cách đã dùng tới nay: nút **Sync fork** trên GitHub → tạo merge commit `Merge branch 'liketrek:main' into main` → `git pull` về máy. Lịch sử: 2/7, 15/7 (còn `mauriceboe`), 21/7, 13/8, 8/10/2026.
-- Cách bằng CLI (cùng kết quả, cần anh duyệt vì kết thúc bằng push = deploy):
-  1. `git remote add upstream https://github.com/liketrek/TREK.git` (một lần).
-  2. `git fetch upstream && git merge upstream/main` (merge, không rebase).
-  3. Xung đột chỉ có thể ở file mình đã đụng: `Dockerfile` (2 dòng `COPY scripts/railway-start.sh` + `chmod`), `.dockerignore` (2 dòng `!scripts/`, `!scripts/railway-start.sh`), và file quy chuẩn. Giữ phần upstream, thêm lại phần của mình.
-  4. Đọc release notes upstream (GitHub Releases, `wiki/Updating`) xem có biến môi trường/migrate mới; `sh tools/check.sh`; rồi xin duyệt push `main`.
-- Diff của fork so với upstream = `git log --author=Cuong --no-merges` (hiện chỉ `3df0b6f0`) + file quy chuẩn đợt 5. Giữ danh sách này ngắn.
+Fork "để dùng" (`kind: fork`, REPO_STANDARD mục 14): không có lộ trình riêng (đã bỏ `docs/ROADMAP.md`), việc của mình là giữ bản chạy và theo kịp upstream. Việc nên làm: đặt nhịp gộp (vd. mỗi tháng).
+
+- Upstream: `https://github.com/liketrek/trek.git` (nhánh `main`; upstream nhận PR vào `dev`). Remote trên máy: chỉ `origin` = `https://github.com/cuonghapvn/trek.git`; không cần thêm remote `upstream`, dùng URL trực tiếp. Lần gộp gần nhất: v5.1.1 (9/11/2026, từ 4.3.3); trước đó nút **Sync fork** trên GitHub (2/7, 15/7, 21/7, 13/8, 8/10/2026).
+- **Gộp** (cần anh duyệt vì kết thúc bằng push = deploy): `git fetch https://github.com/liketrek/trek.git main && git merge FETCH_HEAD` (merge, không rebase; không rebase/force-push `main`).
+- **Trước khi gộp**: đọc release notes (GitHub Releases, `wiki/Updating`) xem có biến môi trường/migrate mới; liệt biến bắt buộc của Railway trong `docs/RAILWAY.md`. **Sao lưu** volume `/app/storage` (SQLite + uploads) trước khi deploy bản mới.
+- **Migrate một chiều**: bản major (vd. v5) migrate DB khi khởi động và tạo `pre-migrate-*.db` cạnh DB; DB đã migrate không chạy lại được bản cũ. **Lùi bản** = redeploy bản cũ trên Railway kèm khôi phục từ `pre-migrate-*.db` (hoặc bản sao lưu) vào volume; cần anh duyệt.
+- **Xung đột** chỉ có thể ở file mình đã đụng: `CLAUDE.md` → giữ dòng `@AGENTS.md` ở đầu rồi bản upstream nguyên văn (không chép sang AGENTS.md); `Dockerfile` (2 dòng `COPY scripts/railway-start.sh` + `chmod`), `.dockerignore` (2 dòng `!scripts/`, `!scripts/railway-start.sh`), file quy chuẩn. Giữ phần upstream, thêm lại phần của mình.
+- **CI baseline**: nếu CI upstream `doc-paths` fail, thêm tay vào `scripts/ci/doc-paths-baseline.json` mục `wiki/Plugin-Development.md :: tools/list` (thư mục `tools/` của quy chuẩn làm checker coi tên method MCP là đường dẫn; `--update` chỉ rút bớt, không thêm). Chạy `sh tools/check.sh`.
+- **Railway**: bật "Wait for CI" để không deploy khi CI đỏ. `railway up` (upload từ máy) dùng `.railwayignore`, phải giữ `wiki/` vì Dockerfile v5 `COPY wiki`.
+- Diff của fork so với upstream = `git log --author=Cuong --no-merges` + file quanh (`company.json`, `AGENTS.md`, `tools/`, `railway.json`, `.railwayignore`, `scripts/railway-start.sh`, `docs/RAILWAY.md`). Giữ danh sách này ngắn; cải tiến riêng muốn giữ thì gửi PR lên upstream.
 
 ## 7. Hướng dẫn kỹ thuật của upstream
 

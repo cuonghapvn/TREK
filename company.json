@@ -4,7 +4,8 @@
   "company": "tech",
   "kind": [
     "web",
-    "api"
+    "api",
+    "fork"
   ],
   "owners": {
     "web": "web-dev",
@@ -54,12 +55,6 @@
     }
   },
   "compliance": {
-    "waivers": [
-      {
-        "rule": "QD-18",
-        "reason": "anh Cường chốt 9/11/2026: giữ fork như hiện tại, không khai upstream, không đổi tên fork-*",
-        "until": "2027-05-08"
-      }
-    ]
+    "upstream": "https://github.com/liketrek/trek.git"
   }
 }
