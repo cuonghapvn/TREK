@@ -76,7 +76,7 @@ Agent dùng chung của Holdings (cài qua `holdings ./hq install`); repo này k
 
 ## 6. Cập nhật upstream
 
-Fork "để dùng" (`kind: fork`, REPO_STANDARD mục 14): không có lộ trình riêng (đã bỏ `docs/ROADMAP.md`), việc của mình là giữ bản chạy và theo kịp upstream. Việc nên làm: đặt nhịp gộp (vd. mỗi tháng).
+Fork "để dùng" (`kind: fork`, REPO_STANDARD mục 14): không có lộ trình riêng (đã bỏ file ROADMAP trong `docs/`), việc của mình là giữ bản chạy và theo kịp upstream. Việc nên làm: đặt nhịp gộp (vd. mỗi tháng).
 
 - Upstream: `https://github.com/liketrek/trek.git` (nhánh `main`; upstream nhận PR vào `dev`). Remote trên máy: chỉ `origin` = `https://github.com/cuonghapvn/trek.git`; không cần thêm remote `upstream`, dùng URL trực tiếp. Lần gộp gần nhất: v5.1.1 (9/11/2026, từ 4.3.3); trước đó nút **Sync fork** trên GitHub (2/7, 15/7, 21/7, 13/8, 8/10/2026).
 - **Gộp** (cần anh duyệt vì kết thúc bằng push = deploy): `git fetch https://github.com/liketrek/trek.git main && git merge FETCH_HEAD` (merge, không rebase; không rebase/force-push `main`).
